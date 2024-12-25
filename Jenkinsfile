@@ -34,8 +34,9 @@ pipeline {
             steps {
                 script {
                     // Ensure the JAR file exists before proceeding
-                    if (!fileExists('target/user-service.jar')) {
-                        error "user-service.jar not found! Build failed."
+                    // 
+                    if (!fileExists('target/user-service-1.0-SNAPSHOT.jar')) {
+                        error "user-service-1.0-SNAPSHOT.jar not found! Build failed."
                     }
                 }
             }
