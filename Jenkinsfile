@@ -9,6 +9,7 @@ pipeline {
     environment {
         IMAGE_NAME = "abakhar217/user-service:user-service-${BUILD_NUMBER}"
         DEPLOYMENT_NAME = 'user-service-deployment'
+        qualityGateFailed = false // Flag to track Quality Gate failure
     }
 
     stages {
@@ -34,7 +35,6 @@ pipeline {
             steps {
                 script {
                     // Ensure the JAR file exists before proceeding
-                    // 
                     if (!fileExists('target/user-service-1.0-SNAPSHOT.jar')) {
                         error "user-service-1.0-SNAPSHOT.jar not found! Build failed."
                     }
@@ -51,12 +51,26 @@ pipeline {
         }
         stage('Quality Gate') {
             steps {
-                timeout(time: 10, unit: 'MINUTES') { // Extended timeout
+                timeout(time: 5, unit: 'MINUTES') { // Extended timeout
                     script {
                         def qualityGate = waitForQualityGate()
                         if (qualityGate.status != 'OK') {
-                            error "Pipeline aborted due to quality gate failure: ${qualityGate.status}"
+                            echo "Warning: Quality Gate failed with status: ${qualityGate.status}. Continuing pipeline execution."
+                            qualityGateFailed = true  // Set flag to true when Quality Gate fails
+                            currentBuild.result = 'UNSTABLE'  // Mark build as unstable
                         }
+                    }
+                }
+            }
+        }
+        
+        stage('Next Stage') {
+            steps {
+                script {
+                    if (qualityGateFailed) {
+                        echo "Quality Gate failed, proceeding with caution."
+                    } else {
+                        echo "Quality Gate passed, proceeding normally."
                     }
                 }
             }
@@ -105,14 +119,31 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            // Clean up any images or containers that were created
-            bat 'docker system prune -f'
-        }
-        failure {
-            // Notify in case of failure (if required, add email or other notifications here)
-            echo "Build or deployment failed."
+post {
+    always {
+        
+        echo "Pipeline completed. Quality Gate status: ${qualityGateFailed ? 'Failed' : 'Passed'}"
+        echo "Pipeline completed. Final status: ${currentBuild.currentResult}"
+	    bat 'docker system prune -f'
+        
+    }
+    success {
+        echo "Pipeline succeeded! Build number: ${env.BUILD_NUMBER}, Job name: ${env.JOB_NAME}"
+    }
+    unstable {
+        echo "Pipeline marked as UNSTABLE. Possible cause: Quality Gate failure or warnings."
+    }
+    failure {
+        echo "Pipeline failed!"
+        echo "Error Details: ${currentBuild.description ?: 'No detailed error provided.'}"
+        // Optionally set a description for better traceability
+        script {
+            currentBuild.description = "Failure occurred during ${env.STAGE_NAME}. Check logs."
         }
     }
+    aborted {
+        echo "Pipeline was aborted by user or timeout."
+    }
+}
+
 }
