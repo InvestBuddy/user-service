@@ -5,7 +5,7 @@ FROM openjdk:21-jdk
 WORKDIR /app
 
 # Copy the JAR file and rename it to notification.jar
-COPY user-service-0.0.1-SNAPSHOT.jar user-service.jar
+COPY target/user-service-0.0.1-SNAPSHOT.jar user-service.jar
 
 # Expose port
 EXPOSE 8080
