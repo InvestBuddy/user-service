@@ -49,20 +49,33 @@ pipeline {
                 }
             }
         }
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 5, unit: 'MINUTES') { // Extended timeout
-                    script {
-                        def qualityGate = waitForQualityGate()
-                        if (qualityGate.status != 'OK') {
-                            echo "Warning: Quality Gate failed with status: ${qualityGate.status}. Continuing pipeline execution."
-                            qualityGateFailed = true  // Set flag to true when Quality Gate fails
-                            currentBuild.result = 'UNSTABLE'  // Mark build as unstable
-                        }
-                    }
-                }
-            }
-        }
+	stage('Quality Gate') {
+	    steps {
+	        script {
+	            def qualityGate = waitForQualityGate()
+	            // Wait for the task to finish for up to 15 minutes
+	            def startTime = System.currentTimeMillis()
+	            def timeoutDuration = 5 * 60 * 1000  // you can increasse 5 minutes to  15 minutes
+	
+	            while (qualityGate.status == 'PENDING' && (System.currentTimeMillis() - startTime) < timeoutDuration) {
+	                echo "SonarQube analysis is still pending. Waiting..."
+	                sleep(30)  // Wait for 30 seconds before checking again
+	                qualityGate = waitForQualityGate()  // Re-check status
+	            }
+	
+	            if (qualityGate.status == 'PENDING') {
+	                echo "SonarQube analysis is still pending after the timeout duration."
+	                currentBuild.result = 'UNSTABLE'  // Mark the build as unstable
+	                qualityGateFailed = true
+	            } else if (qualityGate.status != 'OK') {
+	                echo "Warning: Quality Gate failed with status: ${qualityGate.status}. Continuing pipeline execution."
+	                qualityGateFailed = true
+	                currentBuild.result = 'UNSTABLE'
+	            }
+	        }
+	    }
+	}
+
         
         stage('Next Stage') {
             steps {
@@ -119,31 +132,29 @@ pipeline {
         }
     }
 
-post {
-    always {
-        
-        echo "Pipeline completed. Quality Gate status: ${qualityGateFailed ? 'Failed' : 'Passed'}"
-        echo "Pipeline completed. Final status: ${currentBuild.currentResult}"
-	    bat 'docker system prune -f'
-        
-    }
-    success {
-        echo "Pipeline succeeded! Build number: ${env.BUILD_NUMBER}, Job name: ${env.JOB_NAME}"
-    }
-    unstable {
-        echo "Pipeline marked as UNSTABLE. Possible cause: Quality Gate failure or warnings."
-    }
-    failure {
-        echo "Pipeline failed!"
-        echo "Error Details: ${currentBuild.description ?: 'No detailed error provided.'}"
-        // Optionally set a description for better traceability
-        script {
-            currentBuild.description = "Failure occurred during ${env.STAGE_NAME}. Check logs."
-        }
-    }
-    aborted {
-        echo "Pipeline was aborted by user or timeout."
-    }
-}
+	post {
+	    always {
+	        echo "Pipeline completed. Quality Gate status: ${qualityGateFailed ? 'Failed' : 'Passed'}"
+	        echo "Pipeline completed. Final status: ${currentBuild.currentResult}"
+	        bat 'docker system prune -f'
+	    }
+	    success {
+	        echo "Pipeline succeeded! Build number: ${env.BUILD_NUMBER}, Job name: ${env.JOB_NAME}"
+	    }
+	    unstable {
+	        echo "Pipeline marked as UNSTABLE. Possible cause: Quality Gate failure or warnings."
+	    }
+	    failure {
+	        echo "Pipeline failed!"
+	        echo "Error Details: ${currentBuild.description ?: 'No detailed error provided.'}"
+	        script {
+	            currentBuild.description = "Failure occurred during ${env.STAGE_NAME}. Check logs."
+	        }
+	    }
+	    aborted {
+	        echo "Pipeline was aborted by user or timeout."
+	    }
+	}
+
 
 }
