@@ -40,6 +40,29 @@ pipeline {
                 }
             }
         }
+       
+       stage('Build and SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQubeServer') {
+                    bat 'mvn clean verify sonar:sonar -Dsonar.login=%SONAR_TOKEN%'
+                }
+            }
+        }
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 10, unit: 'MINUTES') { // Extended timeout
+                    script {
+                        def qualityGate = waitForQualityGate()
+                        if (qualityGate.status != 'OK') {
+                            error "Pipeline aborted due to quality gate failure: ${qualityGate.status}"
+                        }
+                    }
+                }
+            }
+        }
+
+
+        
 
         stage('Build Docker Image') {
             steps {
