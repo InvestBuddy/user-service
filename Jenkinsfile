@@ -45,7 +45,7 @@ pipeline {
        stage('Build and SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQubeServer') {
-                    bat 'mvn clean verify sonar:sonar -Dsonar.login=%SONAR_TOKEN%'
+                    bat 'mvn sonar:sonar -Dsonar.login=%SONAR_TOKEN%'
                 }
             }
         }
