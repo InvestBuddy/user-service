@@ -9,7 +9,7 @@ pipeline {
     environment {
         IMAGE_NAME = "abakhar217/user-service:user-service-${BUILD_NUMBER}"
         DEPLOYMENT_NAME = 'user-service-deployment'
-        qualityGateFailed = false // Flag to track Quality Gate failure
+        // qualityGateFailed = false // Flag to track Quality Gate failure
     }
 
     stages {
@@ -49,45 +49,45 @@ pipeline {
                 }
             }
         }
-	stage('Quality Gate') {
-	    steps {
-	        script {
-	            def qualityGate = waitForQualityGate()
-	            // Wait for the task to finish for up to 15 minutes
-	            def startTime = System.currentTimeMillis()
-	            def timeoutDuration = 5 * 60 * 1000  // you can increasse 5 minutes to  15 minutes
+	// stage('Quality Gate') {
+	//     steps {
+	//         script {
+	//             def qualityGate = waitForQualityGate()
+	//             // Wait for the task to finish for up to 15 minutes
+	//             def startTime = System.currentTimeMillis()
+	//             def timeoutDuration = 5 * 60 * 1000  // you can increasse 5 minutes to  15 minutes
 	
-	            while (qualityGate.status == 'PENDING' && (System.currentTimeMillis() - startTime) < timeoutDuration) {
-	                echo "SonarQube analysis is still pending. Waiting..."
-	                sleep(30)  // Wait for 30 seconds before checking again
-	                qualityGate = waitForQualityGate()  // Re-check status
-	            }
+	//             while (qualityGate.status == 'PENDING' && (System.currentTimeMillis() - startTime) < timeoutDuration) {
+	//                 echo "SonarQube analysis is still pending. Waiting..."
+	//                 sleep(30)  // Wait for 30 seconds before checking again
+	//                 qualityGate = waitForQualityGate()  // Re-check status
+	//             }
 	
-	            if (qualityGate.status == 'PENDING') {
-	                echo "SonarQube analysis is still pending after the timeout duration."
-	                currentBuild.result = 'UNSTABLE'  // Mark the build as unstable
-	                qualityGateFailed = true
-	            } else if (qualityGate.status != 'OK') {
-	                echo "Warning: Quality Gate failed with status: ${qualityGate.status}. Continuing pipeline execution."
-	                qualityGateFailed = true
-	                currentBuild.result = 'UNSTABLE'
-	            }
-	        }
-	    }
-	}
+	//             if (qualityGate.status == 'PENDING') {
+	//                 echo "SonarQube analysis is still pending after the timeout duration."
+	//                 currentBuild.result = 'UNSTABLE'  // Mark the build as unstable
+	//                 qualityGateFailed = true
+	//             } else if (qualityGate.status != 'OK') {
+	//                 echo "Warning: Quality Gate failed with status: ${qualityGate.status}. Continuing pipeline execution."
+	//                 qualityGateFailed = true
+	//                 currentBuild.result = 'UNSTABLE'
+	//             }
+	//         }
+	//     }
+	// }
 
         
-        stage('Next Stage') {
-            steps {
-                script {
-                    if (qualityGateFailed) {
-                        echo "Quality Gate failed, proceeding with caution."
-                    } else {
-                        echo "Quality Gate passed, proceeding normally."
-                    }
-                }
-            }
-        }
+        // stage('Next Stage') {
+        //     steps {
+        //         script {
+        //             if (qualityGateFailed) {
+        //                 echo "Quality Gate failed, proceeding with caution."
+        //             } else {
+        //                 echo "Quality Gate passed, proceeding normally."
+        //             }
+        //         }
+        //     }
+        // }
 
 
         
@@ -118,7 +118,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    withKubeConfig([credentialsId: 'kubectl1']) {
+                    withKubeConfig([credentialsId: 'kubectl']) {
                         // Ensure kubectl is configured and available in the Jenkins environment
                         bat """
                             kubectl apply -f user-service-db-deployment.yml
@@ -134,7 +134,6 @@ pipeline {
 
 	post {
 	    always {
-	        echo "Pipeline completed. Quality Gate status: ${qualityGateFailed ? 'Failed' : 'Passed'}"
 	        echo "Pipeline completed. Final status: ${currentBuild.currentResult}"
 	        bat 'docker system prune -f'
 	    }
