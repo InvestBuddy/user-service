@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: abakhar217/user-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_HOST
+              value: "user-service-db"
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_USER
+              valueFrom:
+                  secretKeyRef:
+                      name: postgres-credentials
+                      key: POSTGRES_USER
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                  secretKeyRef:
+                     name: postgres-credentials
+                     key: POSTGRES_PASSWORD
+            - name: DATABASE_NAME
+              valueFrom:
+                  configMapKeyRef:
+                      name: user-service-postgres-config
+                      key: POSTGRES_DB
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  selector:
+    app: user-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
