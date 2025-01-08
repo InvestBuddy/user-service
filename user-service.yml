@@ -25,12 +25,12 @@ spec:
             - name: DATABASE_USER
               valueFrom:
                   secretKeyRef:
-                      name: postgres-credentials
+                      name: user-service-postgres-secrets
                       key: POSTGRES_USER
             - name: DATABASE_PASSWORD
               valueFrom:
                   secretKeyRef:
-                     name: postgres-credentials
+                     name: user-service-postgres-secrets
                      key: POSTGRES_PASSWORD
             - name: DATABASE_NAME
               valueFrom:
