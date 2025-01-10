@@ -1,14 +1,13 @@
 FROM openjdk:21-jdk
 
-# Set working directory
+#Set working directory
 WORKDIR /app
 
-# Copy the application JAR and dependencies
-COPY target/*.jar app.jar
-COPY target/lib/*.jar lib/
+#Copy the JAR file and rename it to notification.jar
+COPY target/user-service-1.0-SNAPSHOT.jar user-service.jar
 
-# Expose port
+#Expose port
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java", "-cp", ".:lib/*", "app.jar"]
+#Run the application
+ENTRYPOINT ["java", "-jar", "user-service.jar"]
