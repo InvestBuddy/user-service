@@ -18,25 +18,25 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: DATABASE_HOST
-              value: "user-service-db"
-            - name: DATABASE_PORT
-              value: "5432"
+            # PostgreSQL Configuration
+            - name: DATABASE_URL
+              value: "jdbc:postgresql://user-service-db:5431/user_db"
             - name: DATABASE_USER
               valueFrom:
                   secretKeyRef:
-                      name: user-service-postgres-secrets
+                      name: postgres-secrets
                       key: POSTGRES_USER
             - name: DATABASE_PASSWORD
               valueFrom:
                   secretKeyRef:
-                     name: user-service-postgres-secrets
+                     name: postgres-secrets
                      key: POSTGRES_PASSWORD
-            - name: DATABASE_NAME
-              valueFrom:
-                  configMapKeyRef:
-                      name: user-service-postgres-config
-                      key: POSTGRES_DB
+            # Kafka Configuration
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-deployment:9092"
+            - name: KAFKA_TOPIC
+              value: "user-events" # You can change this based on your application topic
+          # Other env vars can be set below
 ---
 apiVersion: v1
 kind: Service
