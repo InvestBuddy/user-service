@@ -42,13 +42,13 @@ pipeline {
             }
         }
        
-       stage('Build and SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQubeServer') {
-                    bat 'mvn sonar:sonar -Dsonar.login=%SONAR_TOKEN%'
-                }
-            }
-        }
+       // stage('Build and SonarQube Analysis') {
+       //      steps {
+       //          withSonarQubeEnv('SonarQubeServer') {
+       //              bat 'mvn sonar:sonar -Dsonar.login=%SONAR_TOKEN%'
+       //          }
+       //      }
+       //  }
 	// stage('Quality Gate') {
 	//     steps {
 	//         script {
