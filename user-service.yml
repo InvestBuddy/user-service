@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: abakhar217/user-service:${BUILD_NUMBER}
+          image: abakhar217/user-service:user-service-<BUILD_NUMBER>
           ports:
             - containerPort: 8080
           env:
