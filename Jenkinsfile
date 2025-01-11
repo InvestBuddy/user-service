@@ -115,17 +115,29 @@ pipeline {
             }
         }
 
-		stage('Deploy to Kubernetes') {
-		    steps {
-		        script {
-		            withKubeConfig([credentialsId: 'kubectl']) {
-		        	bat 'kubectl apply -f user-service.yml'
-		            }
-		        }
-		    }
-		}
+			 stage('Deploy to Kubernetes') {
+			     steps {
+			        script {
+			           // Replace a placeholder in user-service.yml with the build number
+			          if (isUnix()) {
+			             sh "sed -i 's#<BUILD_NUMBER>#${BUILD_NUMBER}#g' user-service.yml"
+			           } 
+				   else {
+			                bat "powershell -Command \"(Get-Content user-service.yml) -replace '<BUILD_NUMBER>', '${BUILD_NUMBER}' | Set-Content user-service.yml\""
+			            }
+			
+			            withKubeConfig([credentialsId: 'kubectl']) {
+			              if (isUnix()) {
+			                sh 'kubectl apply -f user-service.yml'
+			             } else {
+			                bat 'kubectl apply -f user-service.yml'
+			               }
+			             }
+			          }
+			     }
+			}
+   	 
     }
-
 	post {
 	    always {
 	        echo "Pipeline completed. Final status: ${currentBuild.currentResult}"
