@@ -115,16 +115,15 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    withKubeConfig([credentialsId: 'config']) {
-                        // Ensure kubectl is configured and available in the Jenkins environment
-                        bat 'kubectl apply -f user-service.yml'
-                    }
-                }
-            }
-        }
+		stage('Deploy to Kubernetes') {
+		    steps {
+		        script {
+		            withKubeConfig([credentialsId: 'kubectl', kubeconfigVariable: 'KUBECONFIG_CONTENT']) {
+		        	bat 'kubectl apply -f user-service.yml'
+		            }
+		        }
+		    }
+		}
     }
 
 	post {
