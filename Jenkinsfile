@@ -118,7 +118,7 @@ pipeline {
 		stage('Deploy to Kubernetes') {
 		    steps {
 		        script {
-		            withKubeConfig([credentialsId: 'kubectl', kubeconfigVariable: 'KUBECONFIG_CONTENT']) {
+		            withKubeConfig([credentialsId: 'kubectl']) {
 		        	bat 'kubectl apply -f user-service.yml'
 		            }
 		        }
