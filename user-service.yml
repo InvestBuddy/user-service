@@ -14,19 +14,19 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: abakhar217/user-service:20
+          image: abakhar217/user-service:${BUILD_NUMBER}
           ports:
             - containerPort: 8080
           env:
             # PostgreSQL Configuration
-            - name: DATABASE_URL
-              value: "jdbc:postgresql://user-service-db:5431/user_db"
-            - name: DATABASE_USER
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://user-service-db:5432/user_db"
+            - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                   secretKeyRef:
                       name: postgres-secrets
                       key: POSTGRES_USER
-            - name: DATABASE_PASSWORD
+            - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                   secretKeyRef:
                      name: postgres-secrets
