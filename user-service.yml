@@ -37,6 +37,11 @@ spec:
                   configMapKeyRef:
                       name: user-service-postgres-config
                       key: POSTGRES_DB
+              # Kafka Configuration
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-deployment:9092"
+            - name: KAFKA_TOPIC
+              value: "user-events" # You can change this based on your application topic
 ---
 apiVersion: v1
 kind: Service
