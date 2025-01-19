@@ -7,8 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tech.investbuddy.userservice.dto.UserRequest;
 import tech.investbuddy.userservice.dto.UserResponse;
+import tech.investbuddy.userservice.model.User;
 import tech.investbuddy.userservice.service.UserService;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +32,15 @@ public class UserController {
     public List<UserResponse> getAllUsers() {
         return  userService.getAllUsers();
     }
+
+//    @GetMapping("/test")
+//    public ResponseEntity<User> test() {
+//        System.out.println("Test endpoint reached");
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        User currentUser = (User) auth.getPrincipal();
+//        System.out.println("currentUser " + currentUser);
+//        return new ResponseEntity<>(currentUser, HttpStatus.CREATED);
+//    }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {

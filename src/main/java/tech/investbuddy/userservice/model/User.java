@@ -9,6 +9,8 @@ import org.hibernate.annotations.CreationTimestamp;
 
 
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -52,4 +54,5 @@ public class User {
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDate createdDate;
+
 }

@@ -23,6 +23,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final KafkaProducer kafkaProducer;
 
+
     public UUID createUser(UserRequest userRequest) {
 
         // Vérifier si l'utilisateur existe déjà
@@ -131,6 +132,13 @@ public class UserService {
         } else if (!user.isEmailVerified()) {
             throw new RuntimeException("User email is not verified");
         }
+
+        /*authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        userLoginRequest.getEmail(),
+                        userLoginRequest.getPassword()
+                )
+        );*/
 
         // Construisez la réponse utilisateur
         return user.getId();

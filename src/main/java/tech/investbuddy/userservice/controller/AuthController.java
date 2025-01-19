@@ -2,15 +2,19 @@ package tech.investbuddy.userservice.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 import tech.investbuddy.userservice.dto.UserLoginRequest;
 import tech.investbuddy.userservice.dto.UserRequest;
 import tech.investbuddy.userservice.model.User;
+import tech.investbuddy.userservice.service.KeycloakService;
 import tech.investbuddy.userservice.service.UserService;
 
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -18,22 +22,32 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthController {
     private final UserService userService;
-    //private final MailgunProperties mailgunProperties;
-    //private final MailgunEmailService mailgunEmailService;
+
+    private final KeycloakService keycloakService;
+
 
     @PostMapping("/auth/register")
     @ResponseStatus(HttpStatus.CREATED)
     public UUID createUser(@Valid @RequestBody UserRequest userRequest) {
+        String response = keycloakService.createUser(userRequest);
+        System.out.println(response);
         return userService.createUser(userRequest);
     }
 
+
+
     @PostMapping("/auth/login")
     @ResponseStatus(HttpStatus.OK)
-    public UUID authenticateUser(@Valid @RequestBody UserLoginRequest userLoginRequest) {
-        return userService.authenticate(userLoginRequest);
+    public Map<String, String> authenticateUser(@Valid @RequestBody UserLoginRequest userLoginRequest) {
+        String access_token = keycloakService.authenticate(userLoginRequest);
+        UUID user_id = userService.authenticate(userLoginRequest);
+        Map<String, String> reponse = new HashMap<>();
+        reponse.put("access_token", access_token);
+        reponse.put("user_id", String.valueOf(user_id));
+        return reponse;
     }
 
-    @GetMapping("/verify-email")
+    @GetMapping("/auth/verify-email")
     public RedirectView verifyEmail(@RequestParam String token) {
         // Recherchez l'utilisateur par token
         User user = userService.findByVerificationToken(token);
@@ -47,15 +61,4 @@ public class AuthController {
         return new RedirectView(frontendUrl);
     }
 
-//    @GetMapping("/test")
-//    public ResponseEntity<String> test() {
-//        /*return ResponseEntity.ok("key: " + mailgunProperties.getApiKey() + "domain: "+ mailgunProperties.getDomain() +
-//                "url: " + mailgunProperties.getBaseUrl());*/
-//        mailgunEmailService.sendVerificationEmail(
-//                "boubacar35sangare@gmail.com",
-//                "Test",
-//                "hey just for testing MailGun :)"
-//        );
-//        return ResponseEntity.ok("Email verified successfully!");
-//    }
 }
